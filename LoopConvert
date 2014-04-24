@@ -1,23 +1,42 @@
 #!/bin/sh
 # Download 7z and set PATH to 7z
 # Takes in a extension type as first and second argument (ie, rar, 7z)
-# First argument is the file types you want to convert
+# First argument is the file types you want to convert OR type folder for first argument to convert the contents of the folder
 # Second argument is the file type you want to convert to
 # Only handles 7z supported formats
 # Credit to 7z for the awesome software and please use this code for noncommerical purposes
 
-for file in *.$1
-do
-	name=`echo $file | cut -f1 -d'.'`
-	convert="$name"."$2"
-	mkdir "$name"
-	cp "$file" "$name"/
-	cd "$name"
-	7z x "$file"
-	rm -f "$file"
-	7z a -t"$2" "$convert" *
-	mv "$convert" ../
-	cd ..
-	rm -rf "$name"
-	rm -rf "$file" # deletes the original file, comment out if you do not want
-done
+if [ "$1" == "folder" ]
+then
+	for dir in */
+		do
+			dir=`echo $dir | cut -f1 -d'/'`
+			convert="$dir"."$2"
+			if [ -d "$dir" ]
+			then 
+				cd "$dir"
+				7z a -t"$2" "$convert" *
+				mv "$convert" ../
+				cd ..
+				rm -rf "$dir"
+			else
+				echo "Could not cd into directory: $dir"
+			fi
+		done
+else
+	for file in *.$1
+		do
+			dir=`echo $file | cut -f1 -d'.'`
+			convert="$dir"."$2"
+			mkdir "$dir"
+			cp "$file" "$dir"/
+			cd "$dir"
+			7z x "$file"
+			rm -f "$file"
+			7z a -t"$2" "$convert" *
+			mv "$convert" ../
+			cd ..
+			rm -rf "$dir"
+			rm -rf "$file" # deletes the original file, comment out if you do not want
+		done
+fi
